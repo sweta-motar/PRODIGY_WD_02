@@ -1,64 +1,40 @@
-let timer;
-let isRunning = false;
-let startTime;
-let elapsedTime = 0;
-let laps = [];
+let timer, isRunning = false, startTime, elapsed = 0;
 
-function startStop() {
+const display = document.getElementById('display'),
+      startStopBtn = document.getElementById('startStopBtn'),
+      lapBtn = document.getElementById('lapBtn'),
+      lapList = document.getElementById('lapList');
+
+const formatTime = ms => [Math.floor(ms/3600000), Math.floor(ms/60000)%60, Math.floor(ms/1000)%60]
+                        .map(n => n.toString().padStart(2,'0')).join(':');
+
+const startStop = () => {
     if (isRunning) {
         clearInterval(timer);
-        document.getElementById('startStopBtn').textContent = 'Start';
-        document.getElementById('lapBtn').disabled = true;
-        isRunning = false;
-        elapsedTime += Date.now() - startTime;
+        elapsed += Date.now() - startTime;
+        startStopBtn.textContent = 'Start';
+        lapBtn.disabled = true;
     } else {
         startTime = Date.now();
-        timer = setInterval(updateDisplay, 10);
-        document.getElementById('startStopBtn').textContent = 'Stop';
-        document.getElementById('lapBtn').disabled = false;
-        isRunning = true;
+        timer = setInterval(() => display.textContent = formatTime(elapsed + Date.now() - startTime), 10);
+        startStopBtn.textContent = 'Stop';
+        lapBtn.disabled = false;
     }
-}
+    isRunning = !isRunning;
+};
 
-function updateDisplay() {
-    const display = document.getElementById('display');
-    const formattedTime = formatTime(elapsedTime + Date.now() - startTime);
-    display.textContent = formattedTime;
-}
-
-function reset() {
+const reset = () => {
     clearInterval(timer);
     isRunning = false;
-    elapsedTime = 0;
-    document.getElementById('display').textContent = '00:00:00';
-    document.getElementById('startStopBtn').textContent = 'Start';
-    document.getElementById('lapBtn').disabled = true;
-    laps = [];
-    document.getElementById('lapList').innerHTML = '';
-}
+    elapsed = 0;
+    display.textContent = '00:00:00';
+    startStopBtn.textContent = 'Start';
+    lapBtn.disabled = true;
+    lapList.innerHTML = '';
+};
 
-function formatTime(milliseconds) {
-    let totalSeconds = Math.floor(milliseconds / 1000);
-    let hours = Math.floor(totalSeconds / 3600);
-    let minutes = Math.floor((totalSeconds % 3600) / 60);
-    let seconds = totalSeconds % 60;
-    
-    return (
-        padZero(hours) + ':' +
-        padZero(minutes) + ':' +
-        padZero(seconds)
-    );
-}
-
-function padZero(number) {
-    return (number < 10 ? '0' : '') + number;
-}
-
-function recordLap() {
-    const lapTime = elapsedTime + Date.now() - startTime;
-    laps.push(lapTime);
-    const lapList = document.getElementById('lapList');
-    const lapItem = document.createElement('li');
-    lapItem.textContent = formatTime(lapTime);
-    lapList.appendChild(lapItem);
-}
+const recordLap = () => {
+    const li = document.createElement('li');
+    li.textContent = formatTime(elapsed + (isRunning ? Date.now() - startTime : 0));
+    lapList.appendChild(li);
+};
